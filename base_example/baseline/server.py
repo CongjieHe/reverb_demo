@@ -3,7 +3,7 @@ import tensorflow as tf
 from tqdm import tqdm
 import random
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = ['0']
+# os.environ['CUDA_VISIBLE_DEVICES'] = ['0']
 
 NUM_EPISODES = 20000
 EPISODE_LENGTH = 1000
@@ -82,14 +82,18 @@ print(local_client.server_info())
 table_name_list = ['Uniform_table', 'Prioritized_table', 'MinHeap_table', 'MaxHeap_table']
 
 with local_client.trajectory_writer(num_keep_alive_refs=EPISODE_LENGTH) as writer:
+    action = tf.random.uniform(actions_spec.shape, maxval=3, dtype=actions_spec.dtype)
+    reward = tf.random.uniform(rewards_spec.shape, maxval=1, dtype=rewards_spec.dtype)
+    state = tf.random.uniform(state_spec.shape, maxval=1, dtype=state_spec.dtype)
+    
     pbar = tqdm(total=NUM_EPISODES)
     pbar.set_description('Generating Fake Data:')
     for _ in range(NUM_EPISODES):
         pbar.update(1)
         for _ in range(EPISODE_LENGTH):
-            action = tf.random.uniform(actions_spec.shape, maxval=3, dtype=actions_spec.dtype)
-            reward = tf.random.uniform(rewards_spec.shape, maxval=1, dtype=rewards_spec.dtype)
-            state = tf.random.uniform(state_spec.shape, maxval=1, dtype=state_spec.dtype)
+            # action = tf.random.uniform(actions_spec.shape, maxval=3, dtype=actions_spec.dtype)
+            # reward = tf.random.uniform(rewards_spec.shape, maxval=1, dtype=rewards_spec.dtype)
+            # state = tf.random.uniform(state_spec.shape, maxval=1, dtype=state_spec.dtype)
             
             writer.append({'action':action, 'reward':reward, 'state':state})
             
