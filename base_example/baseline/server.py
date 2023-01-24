@@ -3,10 +3,10 @@ import tensorflow as tf
 from tqdm import tqdm
 import random
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = ['0']
 
-NUM_EPISODES = 100
-EPISODE_LENGTH = 100
+NUM_EPISODES = 20000
+EPISODE_LENGTH = 1000
 
 actions_spec = tf.TensorSpec([3, 1], dtype=tf.int32)
 state_spec = tf.TensorSpec([3, 38], dtype=tf.float32)
