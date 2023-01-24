@@ -2,11 +2,18 @@ import reverb
 import tensorflow as tf
 from tqdm import tqdm
 import random
+from configparser import ConfigParser
 import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = ['0']
+import sys
 
-NUM_EPISODES = 20000
-EPISODE_LENGTH = 1000
+conf_file = sys.argv[1]
+config = ConfigParser()
+config.read(conf_file)
+
+os.environ['CUDA_VISIBLE_DEVICES'] = config.get('public', 'CUDA_VISIBLE_DEVICES')
+
+NUM_EPISODES = config.getint('server', 'NUM_EPISODES')
+EPISODE_LENGTH = config.getint('server', 'EPISODE_LENGTH')
 
 actions_spec = tf.TensorSpec([3, 1], dtype=tf.int32)
 state_spec = tf.TensorSpec([3, 38], dtype=tf.float32)
@@ -73,7 +80,7 @@ server = reverb.Server(tables=[
                 tf.TensorSpec([EPISODE_LENGTH, *state_spec.shape], state_spec.dtype),
         },
     )],
-    port=52023
+    port=config.getint('public', 'port')
 )
 
 local_client = server.localhost_client()

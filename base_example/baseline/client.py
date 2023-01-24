@@ -1,20 +1,30 @@
 import reverb
 import time
-from tqdm import tqdm
+from configparser import ConfigParser
+import sys
+import os
 
-# test_batch_size = [8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144, 152, 160, 168, 176, 184, 192, 200, 208, 216, 224, 232, 240, 248, 256, 264, 272, 280, 288, 296, 304, 312, 320, 328, 336, 344, 352, 360, 368, 376, 384, 392, 400, 408, 416, 424, 432, 440, 448, 456, 464, 472, 480, 488, 496, 504, 512]
-test_batch_size = [128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 2048]
+conf_file = sys.argv[1]
+config = ConfigParser()
+config.read(conf_file)
 
-TEST_EPISODE_NUM = 1000
+os.environ['CUDA_VISIBLE_DEVICES'] = config.get('public', 'CUDA_VISIBLE_DEVICES')
 
-server_addr = 'localhost:52023'
+test_batch_size = list(map(int, config.get('client', 'test_batch_size').split(',')))
+
+TEST_EPISODE_NUM = config.getint('client', 'TEST_EPISODE_NUM')
+
+server_addr = config.get('public', 'server_addr') + ':' + config.get('public', 'port')
 remote_client = reverb.Client(server_addr)
 print(remote_client.server_info())
 
 table_name_list = ['Uniform_table', 'Prioritized_table', 'MinHeap_table', 'MaxHeap_table']
-
+fo = open(f"./result/{conf_file}_res.txt", "w")
+config.write(fo)
 for table_name in table_name_list:
-    print(f'\nTable Name: {table_name}')
+    str_ = f'\nTable Name: {table_name}'
+    print(str_)
+    fo.write(str_ + '\n')
     for batch_size in test_batch_size:
         dataset = reverb.TrajectoryDataset.from_table_signature(
             server_address=server_addr,
@@ -28,4 +38,7 @@ for table_name in table_name_list:
             sample = temp_dataset.take(1)
         cost_time = time.time() - start_time
         throughput = TEST_EPISODE_NUM * batch_size / cost_time
-        print(f'Batch Size: {batch_size}, Throughput: {throughput} samples/s')
+        str_ = f'Batch Size: {batch_size}, Throughput: {throughput} samples/s'
+        print(str_)
+        fo.write(str_ + '\n')
+fo.close()
