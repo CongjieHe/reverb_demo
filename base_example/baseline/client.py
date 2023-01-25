@@ -3,8 +3,10 @@ import time
 from configparser import ConfigParser
 import sys
 import os
+from tqdm import tqdm
 
 conf_file = sys.argv[1]
+# conf_file = 'base_example/baseline/exp_1.ini'
 config = ConfigParser()
 config.read(conf_file)
 
@@ -25,6 +27,9 @@ for table_name in table_name_list:
     str_ = f'\nTable Name: {table_name}'
     print(str_)
     fo.write(str_ + '\n')
+    fo.flush()
+    pbar = tqdm(total=len(test_batch_size)*TEST_EPISODE_NUM)
+    pbar.set_description(f"Sample {table_name}: ")
     for batch_size in test_batch_size:
         dataset = reverb.TrajectoryDataset.from_table_signature(
             server_address=server_addr,
@@ -35,10 +40,12 @@ for table_name in table_name_list:
         temp_dataset = dataset.batch(batch_size)
         start_time = time.time()
         for _ in range(TEST_EPISODE_NUM):
-            sample = temp_dataset.take(1)
+            pbar.update(1)
+            sample = next(iter(temp_dataset))
         cost_time = time.time() - start_time
         throughput = TEST_EPISODE_NUM * batch_size / cost_time
         str_ = f'Batch Size: {batch_size}, Throughput: {throughput} samples/s'
-        print(str_)
+        # print(str_)
         fo.write(str_ + '\n')
+        fo.flush()
 fo.close()

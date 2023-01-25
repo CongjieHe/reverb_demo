@@ -5,6 +5,7 @@ import random
 from configparser import ConfigParser
 import os
 import sys
+import time
 
 conf_file = sys.argv[1]
 config = ConfigParser()
@@ -87,6 +88,7 @@ local_client = server.localhost_client()
 print(local_client.server_info())
 
 table_name_list = ['Uniform_table', 'Prioritized_table', 'MinHeap_table', 'MaxHeap_table']
+# table_name_list = ['Uniform_table', 'Prioritized_table']
 
 with local_client.trajectory_writer(num_keep_alive_refs=EPISODE_LENGTH) as writer:
     action = tf.random.uniform(actions_spec.shape, maxval=3, dtype=actions_spec.dtype)
@@ -95,6 +97,7 @@ with local_client.trajectory_writer(num_keep_alive_refs=EPISODE_LENGTH) as write
     
     pbar = tqdm(total=NUM_EPISODES)
     pbar.set_description('Generating Fake Data:')
+    start_time = time.time()
     for _ in range(NUM_EPISODES):
         pbar.update(1)
         for _ in range(EPISODE_LENGTH):
@@ -116,3 +119,6 @@ with local_client.trajectory_writer(num_keep_alive_refs=EPISODE_LENGTH) as write
             })
         
         writer.end_episode(timeout_ms=1000)
+    cost_time = time.time() - start_time
+    throughput = NUM_EPISODES / cost_time
+    print(f"Write in throughput: {throughput} samples/s")
