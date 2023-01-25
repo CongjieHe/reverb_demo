@@ -17,8 +17,8 @@ test_batch_size = list(map(int, config.get('client', 'test_batch_size').split(',
 TEST_EPISODE_NUM = config.getint('client', 'TEST_EPISODE_NUM')
 
 server_addr = config.get('public', 'server_addr') + ':' + config.get('public', 'port')
-remote_client = reverb.Client(server_addr)
-print(remote_client.server_info())
+# remote_client = reverb.Client(server_addr)
+# print(remote_client.server_info())
 
 table_name_list = ['Uniform_table', 'Prioritized_table', 'MinHeap_table', 'MaxHeap_table']
 fo = open(f"./result/{conf_file}_res.txt", "w")

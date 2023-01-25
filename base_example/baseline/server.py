@@ -85,7 +85,7 @@ server = reverb.Server(tables=[
 )
 
 local_client = server.localhost_client()
-print(local_client.server_info())
+# print(local_client.server_info())
 
 table_name_list = ['Uniform_table', 'Prioritized_table', 'MinHeap_table', 'MaxHeap_table']
 # table_name_list = ['Uniform_table', 'Prioritized_table']

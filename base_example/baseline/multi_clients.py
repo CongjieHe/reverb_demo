@@ -1,0 +1,62 @@
+import reverb
+import time
+from configparser import ConfigParser
+import sys
+import os
+from tqdm import tqdm
+from multiprocessing import Pool
+
+conf_file = sys.argv[1]
+# conf_file = 'base_example/baseline/exp_1.ini'
+config = ConfigParser()
+config.read(conf_file)
+
+os.environ['CUDA_VISIBLE_DEVICES'] = config.get('public', 'CUDA_VISIBLE_DEVICES')
+
+test_batch_size = list(map(int, config.get('client', 'test_batch_size').split(',')))
+
+TEST_EPISODE_NUM = config.getint('client', 'TEST_EPISODE_NUM')
+CLIENT_NUM = config.getint('client', 'CLIENT_NUM')
+
+
+server_addr = config.get('public', 'server_addr') + ':' + config.get('public', 'port')
+# remote_client = reverb.Client(server_addr)
+# print(remote_client.server_info())
+
+table_name_list = ['Uniform_table', 'Prioritized_table', 'MinHeap_table', 'MaxHeap_table']
+
+def single_process(idx):
+    fo = open(f"./result/{conf_file}_client_{idx}_res.txt", "w")
+    config.write(fo)
+    for table_name in table_name_list:
+        str_ = f'\nTable Name: {table_name}'
+        print(f"Client: {str(idx)} starts {table_name}")
+        fo.write(str_ + '\n')
+        fo.flush()
+        # pbar = tqdm(total=len(test_batch_size)*TEST_EPISODE_NUM)
+        # pbar.set_description(f"Sample {table_name}: ")
+        for batch_size in test_batch_size:
+            dataset = reverb.TrajectoryDataset.from_table_signature(
+                server_address=server_addr,
+                table=table_name,
+                max_in_flight_samples_per_worker=3*batch_size,
+                rate_limiter_timeout_ms=10)
+        
+            temp_dataset = dataset.batch(batch_size)
+            start_time = time.time()
+            for _ in range(TEST_EPISODE_NUM):
+                # pbar.update(1)
+                sample = next(iter(temp_dataset))
+            cost_time = time.time() - start_time
+            throughput = TEST_EPISODE_NUM * batch_size / cost_time
+            str_ = f'Batch Size: {batch_size}, Throughput: {throughput} samples/s'
+            # print(str_)
+            fo.write(str_ + '\n')
+            fo.flush()
+    fo.close()
+    
+proc_pool = Pool(CLIENT_NUM)
+for idx in range(CLIENT_NUM):
+    proc_pool.apply_async(target=single_process, args=(idx,))
+proc_pool.close()
+proc_pool.join()
