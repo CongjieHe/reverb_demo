@@ -43,7 +43,7 @@ def single_process(idx):
     # print(str_)
     return throughput
         
-
+start_time = time.time()
 fo = open(f"./result/{conf_file}_res.txt", "w")
 config.write(fo)
 for client_num in CLIENT_NUM_LIST:
@@ -61,6 +61,6 @@ for client_num in CLIENT_NUM_LIST:
         tmp = proc.get()
         res += tmp
         fo.write(f" Client {idx} throughput: {tmp} samples/s\n")
-    fo.write(f" Total throughput : {res*0.46875/1024} GB/s, {res} samples/s\n")
+    fo.write(f" Total throughput: {res*0.46875/1024} GB/s, {res} samples/s; Time Cost: {time.time()-start_time}\n")
     fo.flush()
 fo.close()
